@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>RegEx</title>
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="css/style.css">
+		<script src="js/jquery-3.2.1.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+	</head>
+	<body>
+	
+		<div class="col-md-12">
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<span class="navbar-brand">RegEx</span>
+					</div>
+					<form class="navbar-form navbar-left">
+						<div class="form-group">
+							<div class="input-group">
+								<div class="input-group-addon">Résultats</div>
+								<select id="nbRes" class="form-control">
+									<option value="10">10</option>
+									<option value="50">50</option>
+									<option value="100" selected>100</option>
+									<option value="100">200</option>
+									<option value="100">500</option>
+									<option value="100">1000</option>
+								</select>
+							</div>
+						</div>
+					</form>
+				</div>
+			</nav>
+		</div>
+
+		<div class="col-md-9">
+			<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">
+							<a data-toggle="collapse" href="#collapse0">
+								Debug
+							</a>
+						</h3>
+					</div>
+					<div id="collapse0" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<div id="debug"></div>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">
+							<a data-toggle="collapse" href="#collapse1">
+								Texte Source
+							</a>
+						</h3>
+					</div>
+					<div id="collapse1" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<textarea id="texteSource"></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">
+							<a data-toggle="collapse" href="#collapse2">
+								Regex
+							</a>
+						</h3>
+					</div>
+					<div id="collapse2" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<textarea id="regex"></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">
+							<a data-toggle="collapse" href="#collapse3">
+								Résultat
+							</a>
+						</h3>
+					</div>
+					<div id="collapse3" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<div id="result"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">
+						<a data-toggle="collapse" href="#collapse4">
+							Statistiques
+						</a>
+					</h3>
+				</div>
+				<div id="collapse4" class="panel-collapse collapse in">
+					<div class="panel-body">
+						<h4>Color match</h4>
+						<div id="statColorMatch"></div>
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">
+						<a data-toggle="collapse" href="#collapse5">
+							Utilitaires
+						</a>
+					</h3>
+				</div>
+				<div id="collapse5" class="panel-collapse collapse in">
+					<div class="panel-body">
+						<div class="form-horizontal">
+							<div class="form-group">
+								<label class="control-label col-sm-2" for="email">Charger</label>
+								<div class="col-sm-10" id="load">
+								</div>
+							</div>
+						</div>
+						<div class="form-horizontal">
+							<div class="form-group">
+								<label class="control-label col-sm-2" for="email">Sauvegarder</label>
+								<div class="col-sm-10">
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Nom de la sauvegarde" id="saveName">
+										<span class="input-group-btn">
+											<button class="btn btn-default" type="button" onclick="save()">Sauvegarder</button>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	</body>
+	
+	<script>
+		
+		// Load old values
+		document.getElementById("texteSource").innerHTML = localStorage.getItem("texteSource");
+		document.getElementById("regex").innerHTML = localStorage.getItem("regex");
+		
+		// Initialisation de la sauvegarde
+		var initSauvegardes = localStorage.getItem("sauvegardes");
+		if(initSauvegardes == '') {
+			sauvegardes = initSauvegardes;
+		} else {
+			sauvegardes = JSON.parse(initSauvegardes);
+		}
+		
+		//localStorage.setItem("sauvegardes", '');
+		
+		function escapeHtml(unsafe) {
+			return unsafe
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#039;")
+				.replace(/\n/g, "<br>");
+		}
+		
+		function onlyUnique(value, index, self) { 
+			return self.indexOf(value) === index;
+		}
+		
+		function save() {
+		
+			// Chargement des données saisies
+			sauvegardes = localStorage.getItem("sauvegardes");
+			var nom = document.getElementById("saveName");
+			var regex = document.getElementById("regex");
+			var json = { "nom":nom.value, "regex":regex.value };
+			
+			if(sauvegardes == '') {
+				// Créer la structure JSON
+				sauvegardes = new Array();
+				sauvegardes.push(json);
+			} else {
+				// Peupler la structure JSON
+				sauvegardes = JSON.parse(sauvegardes)
+				sauvegardes.push(json);
+			}
+			
+			// Sauvegarde
+			localStorage.setItem("sauvegardes", JSON.stringify(sauvegardes));
+
+			// Flush de la saisie
+			nom.value = '';
+			return true;
+		}
+		
+		function displayLoad() {
+			var toShow = '';
+			for(var i in sauvegardes) {
+				toShow = toShow + 
+				'<div class="btn-group">'+
+					'<button class="btn btn-default" onclick="load(this.title)" type="button" title="'+sauvegardes[i].regex+'">'+sauvegardes[i].nom+'</button>'+						
+					'<button class="btn btn-default deleteLoad" type="button" onclick="remove(this.title)" title="'+i+'">X</button>'+
+				'</div> ';
+			}
+			
+			// S'il n'y a rien à afficher
+			if(i === undefined) {
+				toShow = '<p class="btn"><em>Aucune sauvegarde</em></p>';
+			}
+			
+			document.getElementById("load").innerHTML = toShow;
+			return true;
+		}
+		
+		function load(title) {
+			document.getElementById("regex").value = title;
+			return true;
+		}
+		
+		function remove(id) {
+			sauvegardes.splice(id, 1);
+			localStorage.setItem("sauvegardes", JSON.stringify(sauvegardes));
+			return true;
+		}
+	
+		setInterval(maj, 2000);
+		
+		function maj() {
+			if(document.getElementById("regex").value != '') {
+			
+				var debug = document.getElementById("debug");
+
+				var nbRes = parseInt(document.getElementById("nbRes").value);
+				var reg = new RegExp(escapeHtml(document.getElementById("regex").value), "g");
+				var source = escapeHtml(document.getElementById("texteSource").value);
+				var matchRaw = source.match(reg);
+				var texteSortie = document.getElementById("result");
+				var sortie;
+				var statColorMatch = [];
+				var statCountMatch = [];
+
+				localStorage.setItem("texteSource", document.getElementById("texteSource").value);
+				localStorage.setItem("regex", document.getElementById("regex").value);
+
+				// Distinct
+				if(matchRaw != null) {
+					match = matchRaw.filter(onlyUnique);
+				} else {
+					match = matchRaw;
+				}
+				sortie = source;
+				
+				// Generate different color
+				var tabCouleur = ['#FEA3A3','#FEA3F5','#A3A6FE','#A3F2FE','#A3FEA9','#F8FEA3','#FED3D3','#FDD3FE','#DAD3FE','#D3FAFE','#D3FED6','#FEFED3'];
+				var nbCouleur = tabCouleur.length;
+				var indiceCouleur = 0;
+				
+				// RegEx
+				for(var i in match) {
+					if(i < nbRes) {
+						var regFind = new RegExp(match[i], 'g');
+						sortie = sortie.replace(regFind, "<span style='background-color:"+tabCouleur[indiceCouleur]+";'>"+match[i]+"</span>");
+						
+						// Stats
+						statColorMatch.push("<span style='background-color:"+tabCouleur[indiceCouleur]+";'>"+match[i]+"</span>")
+						
+						// Changement de couleur
+						indiceCouleur++;
+						if(indiceCouleur == nbCouleur) {
+							// Remise à zéro de l'indice de couleur
+							indiceCouleur = 0;
+						}
+						
+					} else {
+						break;
+					}
+				}
+
+				// Maj sortie
+				if(matchRaw != null) {
+					texteSortie.innerHTML = sortie;
+				} else {
+					texteSortie.innerHTML = '';
+				}
+				
+				debug.innerHTML = matchRaw + '<hr>' + match;
+
+				// Maj stats
+				
+				for(var i in match) {
+					statCountMatch[i] = 0;
+					for(var j in matchRaw) {
+						if(match[i] === matchRaw[j]) {
+							statCountMatch[i]++;
+						}
+					}
+				}
+				debug.innerHTML = debug.innerHTML + '<hr>' + statCountMatch;
+				
+				document.getElementById("statColorMatch").innerHTML = '';
+				for(var i in statColorMatch) {
+					document.getElementById("statColorMatch").innerHTML = document.getElementById("statColorMatch").innerHTML + statCountMatch[i] + ' ' + statColorMatch[i] + '<br>';
+				}
+				
+				// Maj load
+				displayLoad();
+			}
+			return true;
+		}
+	</script>
+</html>
