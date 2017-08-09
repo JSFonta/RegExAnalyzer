@@ -28,3 +28,19 @@ textarea {
 .deleteLoad:hover {
 	background: #E6B8B8;
 }
+
+#ip {
+	width: 70%;
+}
+
+#slashIpCidr {
+	width: 3%;
+}
+
+#cidr {
+	width: 27%;
+}
+
+.form-group {
+	width: 100%;
+}
